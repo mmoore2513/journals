@@ -1,0 +1,331 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package moore_3_pacman;
+
+import java.util.ArrayList;
+import javafx.animation.AnimationTimer;
+import javafx.application.Application;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
+import javafx.application.Application;
+import javafx.scene.Group;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Arc;
+import javafx.scene.shape.ArcType;
+import javafx.stage.Stage;
+import javafx.scene.text.*;
+import javafx.scene.shape.Rectangle;
+
+/**
+ *
+ * @author mmoore2513
+ */
+public class Moore_3_pacman extends Application {
+
+    static ArrayList<BadGhost> badghozt = new ArrayList<BadGhost>();
+    static ArrayList<String> input = new ArrayList<String>();
+    static ArrayList<Walls> wallz = new ArrayList<Walls>();
+    static Arc arc;
+    static Hero pacmon;
+    static Text score;
+    static Group g;
+    static Rectangle rect;
+    static Rectangle box;
+
+    @Override
+    public void start(Stage primaryStage) {
+
+        
+        // Creates the score for the game.
+        score = new Text(750, 40, "Score goes here");
+        score.setFont(new Font(30));
+        score.setFill(Color.WHITE);
+
+        // Creates the group that displays everything in the scene
+        g = new Group();
+
+        StackPane root = new StackPane();
+        //   root.getChildren().add(btn);
+
+        Scene scene = new Scene(g, 1000, 900, Color.web("BLACK", 1.0));
+
+        primaryStage.setTitle("SRMTHG");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+
+        AnimationTimer timer = new MyTimer();
+
+        pacmon = new Hero(40, 80);
+
+        scene.setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                String code = event.getCode().toString();
+                //    input.remove( code );
+                if (event.getCode() == KeyCode.RIGHT) { // don't use toString here!!!
+                    pacmon.setCenterX(pacmon.getCenterX() + 30);
+                    pacmon.setFill(Color.CADETBLUE);
+                    checkBounds(pacmon);
+                    if (CheckForWalls() == true) {
+                        pacmon.setCenterX(pacmon.getCenterX() - 30);
+                    } else {
+
+                    }
+
+                } else if (event.getCode() == KeyCode.LEFT) {
+                    pacmon.setCenterX(pacmon.getCenterX() - 30);
+                    pacmon.setFill(Color.RED);
+                    checkBounds(pacmon);
+                    if (CheckForWalls() == true) {
+                        pacmon.setCenterX(pacmon.getCenterX() + 30);
+                    }
+
+                } else if (event.getCode() == KeyCode.UP) {
+                    pacmon.setCenterY(pacmon.getCenterY() - 30);
+                    pacmon.setFill(Color.GREEN);
+                    checkBounds(pacmon);
+
+                    if (CheckForWalls() == true) {
+                        pacmon.setCenterY(pacmon.getCenterY() + 30);
+                    }
+
+                } else if (event.getCode() == KeyCode.DOWN) {
+                    pacmon.setCenterY(pacmon.getCenterY() + 30);
+                    pacmon.setFill(Color.ORANGE);
+                    checkBounds(pacmon);
+
+                    if (CheckForWalls() == true) {
+                        pacmon.setCenterY(pacmon.getCenterY() - 30);
+                    }
+
+                }
+            }
+        });
+
+        for (int i = 0; i < 400;) {
+            badghozt.add(new BadGhost(i * 2, i));
+            i += 100;
+
+        }
+
+        arc = new Arc();
+        arc.setCenterX(42);
+        arc.setCenterY(42);
+        arc.setRadiusX(25.0f);
+        arc.setRadiusY(25.0f);
+        arc.setStartAngle(45.0f);
+        arc.setLength(270.0f);
+        arc.setType(ArcType.ROUND);
+        arc.setFill(Color.PINK);
+
+        primaryStage.setScene(scene);
+        primaryStage.show();
+
+        g.getChildren().add(score);
+        g.getChildren().add(arc);
+        g.getChildren().add(pacmon);
+
+        for (int i = 0; i < 400;) {
+            badghozt.add(new BadGhost(i * 2, i));
+            i += 100;
+
+        }
+
+        for (int i = 0; i < 1000;) {
+            wallz.add(new Walls(i * 1, i));
+            i += 100;
+
+        }
+
+        for (BadGhost t : badghozt) {
+            g.getChildren().add(t);
+
+        }
+
+        for (Walls e : wallz) {
+            g.getChildren().add(e);
+
+        }
+
+    }
+// VV Where the hero class is created
+    static class Hero extends Arc {
+
+        int Health = 1;
+        public boolean isAlive = true;
+        int score = 0;
+
+        public Hero(int x, int y) {
+            this.setCenterX(x);
+            this.setCenterY(y);
+
+            this.setRadiusX(25.0f);
+            this.setRadiusY(25.0f);
+            this.setStartAngle(45.0f);
+            this.setLength(270.0f);
+            this.setType(ArcType.ROUND);
+
+            this.setFill(Color.GOLD);
+
+        }
+
+        public void setTheScore(int i) {
+            this.score = i;
+
+        }
+
+        public int getTheScore() {
+            return this.score;
+
+        }
+
+        public void End() {
+
+        }
+
+    }
+// Where the Ghost class is created
+    static class BadGhost extends Arc {
+
+        boolean movedown = true;
+
+        int Health = 1;
+        int score = 0;
+
+        public BadGhost(int x, int y) {
+            this.setCenterX(x);
+            this.setCenterY(y);
+
+            this.setRadiusX(25.0f);
+            this.setRadiusY(25.0f);
+            this.setStartAngle(45.0f);
+            this.setLength(270.0f);
+            this.setType(ArcType.ROUND);
+
+            this.setFill(Color.WHITE);
+
+        }
+
+    }
+// VV Where the wall class is created
+    static class Walls extends Rectangle {
+
+        public Walls(int x, int y) {
+            this.setX(x);
+            this.setY(y);
+
+            this.setWidth(250);
+            this.setHeight(30);
+            this.setStroke(Color.BLUE);
+            this.setFill(Color.TRANSPARENT);
+
+        }
+
+    }
+
+    private class MyTimer extends AnimationTimer {
+
+        boolean movedown = true;
+
+        /// handle is defined by the abstract parent class -- it must be redined 
+        /// this is what happens again and again until stop()
+        @Override
+        public void handle(long now) {
+            // You can look at the key presses here as well -- this is one of many. Try others
+            if (input.contains("LEFT")) {
+                pacmon.setCenterX(pacmon.getCenterX() - 15);
+            }
+
+            doHandle();
+
+            /// notice doHandle()  is what happens again and again it's defined below
+        }
+//       VV makes the arc move
+        private void doHandle() {
+            checkBounds(pacmon);
+            if (movedown && arc.getCenterX() < 1000) {
+                arc.setCenterX(arc.getCenterX() + 5);
+            }
+            if (!movedown && arc.getCenterX() > 1) {
+                arc.setCenterX(arc.getCenterX() - 5);
+            }
+            if (arc.getCenterX() > 1000) {
+                movedown = false;
+            }
+            if (arc.getCenterX() < 1) {
+                movedown = true;
+            }
+
+            // stop();
+            // System.out.println("Animation stopped");
+        }
+
+    }
+//   VV Code that checks for intersection between Pacman and the walls. Returns true or false.
+    boolean CheckForWalls() {
+        for (Rectangle Walls : wallz) {
+            if (pacmon.getBoundsInParent().intersects(Walls.getBoundsInParent())) {
+                return true;
+            } 
+        }
+        return false;
+    }
+// VV Checks the bounds between the ghost, and sets the score.
+    private void checkBounds(Hero pacmon) {
+        // checkBounds is called in two different locations --- it's really only necessary in the animation dohandle
+        // experiment - check the differences
+
+        boolean collisionDetected = false;
+
+        // notice the difference in how an ArrayList iterates through items 
+        for (Arc BadGhost : badghozt) {
+            if (pacmon.getBoundsInParent().intersects(BadGhost.getBoundsInParent())) {
+
+                collisionDetected = true;
+                pacmon.isAlive = false;
+                BadGhost.setFill(Color.RED);
+
+            } else {
+                BadGhost.setFill(Color.WHITE);
+            }
+        }
+
+        if (pacmon.getBoundsInParent().intersects(arc.getBoundsInParent())) {
+
+            pacmon.isAlive = false;
+            collisionDetected = true;
+            arc.setFill(Color.BLUE);
+        }
+
+        if (collisionDetected) {
+
+            pacmon.setFill(Color.GREENYELLOW);
+            pacmon.setTheScore(pacmon.getTheScore() - 1000);
+            score.setText("Score:" + pacmon.getTheScore());
+
+            pacmon.setFill(Color.RED);
+
+        } else {
+            pacmon.setFill(Color.GREENYELLOW);
+        }
+    }
+
+    /**
+     * @param args the command line arguments
+     */
+    
+    // VV Launches the program
+    public static void main(String[] args) {
+        launch(args);
+    }
+
+}
